@@ -3,6 +3,7 @@ package com.sharath.wekan_task
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
+import androidx.appcompat.widget.SearchView
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.sharath.wekan_task.adapter.StationsAdapter
 import com.sharath.wekan_task.api.ApiAdapter
@@ -15,9 +16,23 @@ import retrofit2.Response
 
 class MainActivity : AppCompatActivity() {
 
+    lateinit var adapter: StationsAdapter
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        search.setOnQueryTextListener(object: SearchView.OnQueryTextListener{
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                return false
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                adapter.filter.filter(newText)
+                return false
+            }
+
+        })
 
         getStationList()
     }
@@ -28,10 +43,11 @@ class MainActivity : AppCompatActivity() {
         call.enqueue(object : Callback<ApiResponse> {
             override fun onResponse(call: Call<ApiResponse>, response: Response<ApiResponse>) {
                 if (response.isSuccessful){
+                    adapter = StationsAdapter(response.body()!!.fuel_stations)
                     recyclerView.apply {
                         setHasFixedSize(true)
                         layoutManager = LinearLayoutManager(this@MainActivity)
-                        adapter = StationsAdapter(response.body()!!.fuel_stations)
+                        adapter = this@MainActivity.adapter
                     }
                     progressBar.visibility = View.GONE
                 }
